@@ -1,6 +1,8 @@
-@lazyGlobal off.
+@lazyglobal off.
 
-DisplayMFDLaunchLabels.
+runoncepath("0:/shuttleScript/shuttleLib").
+
+DisplayMFDLaunchLabels().
 
 //edit maxQ.txt.
 //log "--- START OF LOG ---" to maxQ.txt.
@@ -16,8 +18,8 @@ local FlightStatus is "".
 // Processor declaration
 local cpuMain is ship:partsdubbed("mainCPU")[0].
 local cpu1 is processor("CPU1"):connection.
-local cpu2 is processor("CPU2"):connection.
-local cpu3 is processor("CPU3"):connection.
+//local cpu2 is processor("CPU2"):connection.
+//local cpu3 is processor("CPU3"):connection.
 
 // Geocoordinate for KSC
 local KSCPos is ship:geoposition.
@@ -51,7 +53,7 @@ local shipMaxCargoMass is 18. // tons
 local shipCargoMass is ship:mass - shipEmptyMass. // tons
 
 set ship:control:pilotmainthrottle to 0.4.
-
+set steeringManager:rollcontrolanglerange to 180.
 
 // take this out later
 set DiagnosticMsg to inclinationLaunch + " degrees".
@@ -105,8 +107,10 @@ until ship:facing:pitch < currentPitchTwang - 0.1 {// startLaunchTime > endLaunc
     print "max twang: " + currentPitchTwang.
     print "time: " + time.
     if time > (endLaunchTime + timespan(0, 0, 0, 0, 1)) and ship:facing:pitch > currentPitchTwang {
-        lock throttle to 0.
-        print 1 / 0.
+        //lock throttle to 0.
+        //wait 0.1.
+        //print 1 / 0.
+        break.
     }
 }
 //lock throttle to 0.4.
@@ -121,22 +125,31 @@ local pitchSteer is 90.
 lock steering to heading(180,89,180).
 
 until altitude > 130 {
-    DisplayMFDLaunchData.
+    //DisplayMFDLaunchData.
 }
 
 // Roll program
 set FlightStatus to ("Cleared Launch Tower").
-set steeringManager:maxstoppingtime to 2.
 
 changeEngineState("ssme", "unlockYawRoll").
-//set lights to not lights.
 
-lock orientationLaunch to heading(inclinationLaunch,pitchSteer,180).
+local driftPID is PIDLoop(1.5, 0.005, 1.2, -8, 8). 
+set driftPID:setpoint to 0.
+
+lock targetAzimuthVector to heading(inclinationLaunch, 0):vector.
+lock rightDirection to vcrs(targetAzimuthVector, up:vector). 
+lock crossTrackSpeed to vdot(ship:velocity:surface, rightDirection).
+
+lock yawOffset to driftPID:update(time:seconds, crossTrackSpeed).
+
+lock orientationLaunch to heading(inclinationLaunch - yawOffset, pitchSteer, 180).
 lock steering to orientationLaunch.
 
 until abs(steeringManager:rollerror) < 5 {
     DisplayMFDLaunchData.
 }
+
+set steeringManager:maxstoppingtime to 3.
 
 set pitchSteer to 86.
 
@@ -198,7 +211,7 @@ until stage:resourceslex:solidfuel:amount < 1 {
     stage.
 }
 
-set FlightStatus to ("STAGING SRBS: MAINTAIN ALTITUDE").
+set FlightStatus to ("STAGING SRBS: MAINTAIN ATTITUDE").
 set gForcePID:setpoint to 1.
 DisplayMFDLaunchData.
 wait 4.
@@ -223,7 +236,8 @@ until vang(ship:facing:vector, steering:vector) < 2 and steeringmanager:rollerro
 }
 
 lock steering to heading(inclinationLaunch,NavBallValues(ship):x,180).
-set steeringManager:maxstoppingtime to 0.18.
+set steeringManager:maxstoppingtime to 0.25.
+changeEngineState("ssme", "unlockRoll").
 
 set gForcePID:setpoint to 2.
 
@@ -243,7 +257,7 @@ when gForceThrottle > altSteerPID:update(time:seconds, verticalSpeed) then {
 }
 
 local angleAllowed is -7.
-local lock apoapsisPID to PIDLoop(2, 0.0015, 0.001, angleAllowed, 20).
+local lock apoapsisPID to PIDLoop(0.4, 0.002, 0.2, angleAllowed, 20).
 set apoapsisPID:setpoint to 60.
 
 local lock apSteer to apoapsisPID:UPDATE(time:seconds, eta:apoapsis).
@@ -449,7 +463,7 @@ function runtime
     if core:messages:empty = false {
         set msg to core:messages:pop:content.
     }
-    cpu2:sendmessage(lex("cpu", "cpuMain", "msg", sendMsg)).
+    //cpu2:sendmessage(lex("cpu", "cpuMain", "msg", sendMsg)).
 
     //log ship:q to maxQ.txt.
 }
@@ -562,6 +576,6 @@ function DisplayMFDLaunchLabels
         // Diagnostic info.
   	print "":padleft(terminal:width) at (0,17).
   	print DiagnosticMsg at (0,17).
-    print MFDVal(round(ship:q,5)) at (0,18).
-    print MFDVal(round(ship:q * airspeed,5)) at (20,18).
+    print MFDVal(round(crossTrackSpeed,5)) at (0,18).
+    print MFDVal(round(yawOffset,5)) at (20,18).
 }

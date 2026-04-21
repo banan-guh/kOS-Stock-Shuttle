@@ -329,23 +329,28 @@ function changeEngineState
         }
         else if engineAction = "unlockYawRoll" {
             set SSME1:gimbal:yaw to true.
-            set SSME1:gimbal:roll to true.
+            //set SSME1:gimbal:roll to true.
 
             set SSME2:gimbal:yaw to true.
-            set SSME2:gimbal:roll to true. 
+            //set SSME2:gimbal:roll to true. 
 
             set SSME3:gimbal:yaw to true.
-            set SSME3:gimbal:roll to true.
+            //set SSME3:gimbal:roll to true.
         }
         else if engineAction = "lockYawRoll" {
             set SSME1:gimbal:yaw to false.
-            set SSME1:gimbal:roll to false.
+            //set SSME1:gimbal:roll to false.
 
             set SSME2:gimbal:yaw to false.
-            set SSME2:gimbal:roll to false.
+            //set SSME2:gimbal:roll to false.
 
             set SSME3:gimbal:yaw to false.
-            set SSME3:gimbal:roll to false.
+            //set SSME3:gimbal:roll to false.
+        }
+        else if engineAction = "unlockRoll" {
+            set SSME1:gimbal:roll to true.
+            set SSME2:gimbal:roll to true. 
+            set SSME3:gimbal:roll to true.
         }
     }
     else if engineType = "oms" {

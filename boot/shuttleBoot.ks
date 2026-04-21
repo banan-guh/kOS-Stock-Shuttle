@@ -11,11 +11,11 @@ runoncepath("0:/shuttleScript/shuttleLib").
 
 if altitude > 5000 and altitude < 70000 {
     runoncepath("0:/shuttleScript/shuttleLand").
-    runoncepath("0:/shuttleScript/auto3").
+    runoncepath("0:/shuttleScript/auto4").
     print 1 / 0.
 }
 else if altitude > 500 and altitude < 5000 {
-    runoncepath("0:/shuttleScript/auto3").
+    runoncepath("0:/shuttleScript/auto4").
     print 1 / 0.
 }
 
@@ -36,7 +36,7 @@ if altitude < 5000 {
     }
 
     if alt:radar < 200 {
-        local timeDiv is 10.
+        local timeDiv is 2.
         terminal:input:clear.
 
         ship:partsdubbed("retract")[0]:getmodule("ModuleRoboticController"):setfield("play/pause", 0).
@@ -69,10 +69,10 @@ wait until terminal:input:haschar = true.
 
 if altitude > 5000 {
     runoncepath("0:/shuttleScript/shuttleLand").
-    runoncepath("0:/shuttleScript/auto3").
+    runoncepath("0:/shuttleScript/auto4").
 }
 else if altitude < 5000 and alt:radar > 300 {
-    runoncepath("0:/shuttleScript/auto3").
+    runoncepath("0:/shuttleScript/auto4").
 }
 else {
     print "PANIC!!!".

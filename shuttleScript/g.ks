@@ -212,7 +212,6 @@ shuttleGUI:show().
 local time2 is time + 1.
 
 until exit {
-
     setEngTex(OMS1thrott, OMSengine1).
     setEngTex(OMS2thrott, OMSengine2).
     setEngTex(SSME1thrott, engine1).
